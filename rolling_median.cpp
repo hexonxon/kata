@@ -11,7 +11,9 @@ public:
 
     typedef bool(*ordering_t)(int, int);
 
-    heap(ordering_t ordering) : m_ordering(ordering) { m_v.clear(); }
+    heap(ordering_t ordering) : m_ordering(ordering) { 
+        m_v.clear(); 
+    }
 
     size_t size() const {
         return m_v.size();
@@ -19,13 +21,13 @@ public:
 
     void push(int num) {
         m_v.push_back(num);
-        std::make_heap(m_v.begin(), m_v.end(), m_ordering);
+        std::push_heap(m_v.begin(), m_v.end(), m_ordering);
     }
 
     int pop () {
         int num = top();
         m_v.erase(m_v.begin());
-        std::make_heap(m_v.begin(), m_v.end(), m_ordering);
+        std::pop_heap(m_v.begin(), m_v.end(), m_ordering);
         return num;
     }
 
