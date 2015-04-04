@@ -1,3 +1,7 @@
+//
+// Compute rolling mean of a stream of random numbers
+//
+
 #include <cstdlib>
 #include <ctime>
 #include <iostream>

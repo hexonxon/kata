@@ -1,3 +1,9 @@
+//
+// Compute a rolling median of a stream of random numbers
+//
+// This implementation uses well-known double-heap approach
+//
+
 #include <cstdlib>
 #include <iostream>
 #include <vector>
