@@ -32,8 +32,8 @@ static void parse(ifstream& input, FactSet& facts, std::vector<RulePtr>& rules)
         string res = match[0];
         regex subr("\"([A-Z_])\"");
 
-		sregex_iterator i(res.begin(), res.end(), subr);
-		sregex_iterator end;
+        sregex_iterator i(res.begin(), res.end(), subr);
+        sregex_iterator end;
 
         while (i != end) {
             match = *i++;
@@ -50,8 +50,8 @@ static void parse(ifstream& input, FactSet& facts, std::vector<RulePtr>& rules)
         // match for identity rule
         {
             regex identity("\"([A-Z_])\\s*->\\s*([A-Z_])\"");
-	    	sregex_iterator i(res.begin(), res.end(), identity);
-		    sregex_iterator end;
+            sregex_iterator i(res.begin(), res.end(), identity);
+            sregex_iterator end;
             while (i != end) {
                 match = *i++;
                 rules.push_back( make_shared<IdentityRule>(match[1], match[2]) );
@@ -61,8 +61,8 @@ static void parse(ifstream& input, FactSet& facts, std::vector<RulePtr>& rules)
         // match for binary rules
         {
             regex binary("\"([A-Z_])\\s*([|,])\\s*([A-Z_])\\s*->\\s*([A-Z_])\"");
-	    	sregex_iterator i(res.begin(), res.end(), binary);
-		    sregex_iterator end;
+            sregex_iterator i(res.begin(), res.end(), binary);
+            sregex_iterator end;
             while (i != end) {
                 match = *i++;
                 if (match[2] == "|") {
