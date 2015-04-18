@@ -31,12 +31,10 @@ static std::list<int> add(const std::list<int>& a, const std::list<int>& b)
 	auto i = a.begin();
 	auto j = b.begin();
 
-	int sum = 0;
-	int rem = 0;
-
+	int carry = 0;
 	while (i != a.end() && j != b.end()) {
-		sum = *i + *j + rem;
-		rem = sum / 10;
+		int sum = *i + *j + carry;
+		carry = sum / 10;
 		res.push_back(sum % 10);
 
 		++i;
@@ -44,12 +42,12 @@ static std::list<int> add(const std::list<int>& a, const std::list<int>& b)
 	}
 
 	if (i != a.end()) {
-		res.push_back(*i + rem);
-		rem = 0;
+		res.push_back(*i + carry);
+		carry = 0;
 		++i;
 	} else if (j != b.end()) {
-		res.push_back(*j + rem);
-		rem = 0;
+		res.push_back(*j + carry);
+		carry = 0;
 		++j;
 	}
 
