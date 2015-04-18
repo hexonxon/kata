@@ -4,6 +4,8 @@
 //
 // Solution is to scan a list skipping all values less than X. First element >= X is a pivot.
 // After that all further values < X are swapped with a pivot and pivot is incremented to point to the next element.
+// ----
+// Actually that is a perfectly good solution for an array. For the list we can just use 2 lists.
 //
 
 #include <stdlib.h>
