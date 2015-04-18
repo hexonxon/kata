@@ -1,5 +1,5 @@
 //
-// 2.3  Partition list around a value X
+// 2.4  Partition list around a value X
 // ------------------------------------
 //
 // Solution is to scan a list skipping all values less than X. First element >= X is a pivot.
