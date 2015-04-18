@@ -6,11 +6,6 @@
 // 1. What are the complexity requirements
 // 2. Do we have a length of linked list pre-calculated? (assume NO)
 // 
-// Solution:
-
-//    
-
-// 
 
 #include <stdlib.h>
 #include <assert.h>
@@ -51,7 +46,7 @@ static typename std::list<T>::iterator kth_to_last_indexed(std::list<T>& list, s
 }
 
 //
-// 2. We can recourse into list with a depth counter. Same O(N).
+// 2. We can recourse into list with a depth counter. Same O(N) memory as in 1 due to recoursion. Although N is probably less then (1 pointer versus a stck frame).
 //
 
 template < typename T >
