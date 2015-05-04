@@ -3,6 +3,7 @@
 //
 
 #include <list>
+#include <vector>
 #include <stdexcept>
 
 #include <assert.h>
@@ -84,8 +85,8 @@ public:
 	void push(const T& t)
 	{
 		// Check current stack for limit and create a new stack if needed
-		if (m_stackset.empty() || (active_stack().size() == m_limit)) {
-			m_stackset.push(stack<T>());
+		if (m_stacks.empty() || (active_stack().size() == m_limit)) {
+			m_stacks.push_back(stack<T>());
 		}
 
 		// Push element into the topmost stack
@@ -95,13 +96,13 @@ public:
 
 	T pop()
 	{
-		if (m_stackset.size() == 0) {
+		if (m_stacks.empty()) {
 			throw std::out_of_range("Stack set is empty");
 		}
 
 		T t = active_stack().pop();
 		if (active_stack().size() == 0) {
-			m_stackset.pop();
+			m_stacks.pop_back();
 		}
 
 		return t;
@@ -109,7 +110,7 @@ public:
 
 	const T& top() const
 	{
-		if (m_stackset.size() == 0) {
+		if (m_stacks.empty() == 0) {
 			throw std::out_of_range("Stack set is empty");
 		}
 
@@ -118,17 +119,17 @@ public:
 
 	size_t total_stacks() const 
 	{
-		return m_stackset.size();
+		return m_stacks.size();
 	}
 
 private:
 
 	stack<T>& active_stack() {
-		return m_stackset.top();
+		return m_stacks.back();
 	}
 
 	size_t m_limit;
-	stack< stack<T> > m_stackset;
+	std::vector< stack<T> > m_stacks;
 };
 
 int main()
