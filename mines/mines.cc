@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 
      for (size_t i = 0; i < field.total_lines(); ++i) {
          for (size_t j = 0; j < field.get_line(i).size(); ++j) {
-            if (field.has_mines(i, j)) {
+            if (field.has_mine(i, j)) {
                 cout << "X ";
             } else {
                 cout << count_adjacent_mines(field, i, j) << " ";
