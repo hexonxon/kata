@@ -34,6 +34,31 @@ struct list_node* remove_duplicates(struct list_node* head)
     return head;
 }
 
+struct list_node* remove_duplicates_constant_space(struct list_node* head)
+{
+    struct list_node* follow = head;
+    while (follow != NULL) {
+        struct list_node* node = follow->next;
+        struct list_node* prev = follow;
+        while (node != NULL) {
+            struct list_node* next = node->next;
+            if (node->val == follow->val) {
+                prev->next = next;
+                free(node); /* TODO: probably something more complicated then 'free' */
+            } else {
+                prev = node;
+            }
+        
+            node = next;
+        }
+        
+        follow = follow->next;
+    }
+    
+    return head;
+    
+}
+
 static struct list_node* make_node(struct list_node* prev, int val)
 {
     struct list_node* n = (struct list_node*) malloc(sizeof(*n));
@@ -45,20 +70,20 @@ static struct list_node* make_node(struct list_node* prev, int val)
     return n;
 }
 
-int main()
+static void test(struct list_node*(*remover_fptr)(struct list_node*))
 {
     {
         struct list_node* head = make_node(NULL, 1);
         make_node(make_node(make_node(head, 3), 1), 2);
         
-        struct list_node* new_head = remove_duplicates(head);
+        struct list_node* new_head = remover_fptr(head);
         assert(new_head->val == 1);
         assert(new_head->next->val == 3);
         assert(new_head->next->next->val == 2);
         assert(new_head->next->next->next == NULL);
         
         /* Now there are no duplicates */
-        new_head = remove_duplicates(new_head);
+        new_head = remover_fptr(new_head);
         assert(new_head->val == 1);
         assert(new_head->next->val == 3);
         assert(new_head->next->next->val == 2);
@@ -66,8 +91,13 @@ int main()
     }
     
     {
-        assert(NULL == remove_duplicates(NULL));
+        assert(NULL == remover_fptr(NULL));
     }
-    
+}
+
+int main()
+{
+    test(remove_duplicates);
+    test(remove_duplicates_constant_space);
     return 0;
 }
