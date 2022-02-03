@@ -1,65 +1,55 @@
-#include <assert.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
 #include <iostream>
-#include <unordered_set>
+#include <cassert>
 
-struct list_node {
-    struct list_node* next;
+struct list_head {
+    struct list_head* next;
+    char c;
 };
 
-const struct list_node* find_loop_start(const struct list_node* head)
+static struct list_head* make_head(struct list_head* prev, char c)
 {
-    if (!head)
-        return NULL;
- 
-    const struct list_node* lead = head;
-    const struct list_node* follow = head;
+    struct list_head* h = (struct list_head*) malloc(sizeof(*h));
+    assert(h);
     
-    while (lead) {
-        lead = lead->next;
-        if (!lead)
-            break;
+    h->next = NULL;
+    h->c = c;
+    if (prev)
+        prev->next = h;
         
-        lead = lead->next;    
-        follow = follow->next;
-        
-        if (lead == follow)
-            return lead;
-    }
-    
-    return NULL;
+    return h;
 }
 
-static struct list_node* make_node(struct list_node* prev)
+const struct list_head* find_loop_start(const struct list_head* head)
 {
-    struct list_node* n = (struct list_node*) malloc(sizeof(*n));
-    assert(n);
-    n->next = NULL;
-    if (prev)
-        prev->next = n;
-    return n;
+    const struct list_head* slow = head;
+    const struct list_head* fast = head;
+
+    do {
+        if (!fast || !fast->next)
+            return NULL;
+            
+        fast = fast->next->next;
+        slow = slow->next;
+    } while (fast != slow);
+    
+    /* Meeting point is K steps before loop start, where K is the length of unlooped portion */
+    slow = head;
+    while (fast != slow) {
+        fast = fast->next;
+        slow = slow->next;
+    }
+    
+    return slow;
 }
 
 int main()
 {
-    {
-        struct list_node* a = make_node(NULL);
-        struct list_node* b = make_node(a);
-        struct list_node* c = make_node(b);
-        assert(NULL == find_loop_start(a));
-    }
+    struct list_head* a = make_head(NULL, 'a');
+    struct list_head* b = make_head(a, 'b');
+    struct list_head* c = make_head(b, 'c');
+    struct list_head* d = make_head(c, 'd');
+    d->next = b;
     
-    {
-        struct list_node* a = make_node(NULL);
-        struct list_node* b = make_node(a);
-        struct list_node* c = make_node(b);
-        struct list_node* d = make_node(c);
-        d->next = b;
-
-        assert(d == find_loop_start(a));
-    }
-
+    assert(find_loop_start(a) == b);
     return 0;
 }
