@@ -1,4 +1,3 @@
-// Online C++ compiler to run C++ program online
 #include <vector>
 #include <list>
 #include <iostream>
@@ -30,13 +29,7 @@ bool compare_trees(const tree_node* t1, const tree_node* t2)
     if (t1->val != t2->val)
         return false;
         
-    if (!compare_trees(t1->left, t2->left))
-        return false;
-        
-    if (!compare_trees(t1->right, t2->right))
-        return false;
-        
-    return true;
+    return compare_trees(t1->left, t2->left) &&  compare_trees(t1->right, t2->right);
 }
 
 const tree_node* find_node(const tree_node* haystack, const tree_node* needle)
