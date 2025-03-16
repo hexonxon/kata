@@ -141,6 +141,7 @@ static T fetch_and_store(volatile T *addr, T val)
     return val;
 }
 
+#ifdef LOCK_IMPL_SIMPLE
 
 /*
  * Exponential backoff delay spinlock implementation.
@@ -149,10 +150,10 @@ static T fetch_and_store(volatile T *addr, T val)
  * Spins on the shared variable in cache and the goes out for an atomic xchg.
  */
 
-struct CACHE_ALIGNED delay_lock
+typedef struct CACHE_ALIGNED delay_lock
 {
     int lock;
-};
+} spinlock_t;
 
 void spin_init(struct delay_lock *l)
 {
@@ -163,8 +164,9 @@ void spin_lock(struct delay_lock *l)
 {
     unsigned long delay_us = 1;
     while (atomic_load(&l->lock) || test_and_set(&l->lock)) {
-        usleep(delay_us);
-        delay_us *= 2;
+        //usleep(delay_us);
+        //delay_us *= 2;
+        //pause();
     }
 
     /* Acquire barrier is not necessary here, becase we finish locking with a full barrier (test_and_set)
@@ -177,6 +179,7 @@ void spin_unlock(struct delay_lock *l)
     write_release(&l->lock, 0);
 }
 
+#elif defined(LOCK_IMPL_TICKET)
 
 /*
  * Ticket lock
@@ -185,11 +188,11 @@ void spin_unlock(struct delay_lock *l)
  * Generates some bus contention by spinning on a shared variable.
  */
 
-struct CACHE_ALIGNED ticket_lock
+typedef struct CACHE_ALIGNED ticket_lock
 {
     unsigned long now;
     unsigned long next;
-};
+} spinlock_t;
 
 void spin_init(struct ticket_lock *l)
 {
@@ -211,6 +214,7 @@ void spin_unlock(struct ticket_lock *l)
     write_release(&l->now, l->now + 1);
 }
 
+#elif defined(LOCK_IMPL_ARRAY_QUEUEING)
 
 /*
  * Array-based queueing lock
@@ -224,12 +228,12 @@ struct CACHE_ALIGNED array_queue_node
     int flag;
 };
 
-struct CACHE_ALIGNED array_queue_lock
+typedef struct CACHE_ALIGNED array_queue_lock
 {
     struct array_queue_node queue[MAX_CPUS];
     CACHE_ALIGNED unsigned long head;
     CACHE_ALIGNED unsigned long tail;
-};
+} spinlock_t;
 
 void spin_init(struct array_queue_lock *l)
 {
@@ -259,6 +263,7 @@ void spin_unlock(struct array_queue_lock *l)
     write_release(&l->queue[l->head].flag, 1);
 }
 
+#elif defined(LOCK_IMPL_LIST_QUEUEING)
 
 /*
  * List-based queueing lock
@@ -272,11 +277,11 @@ struct CACHE_ALIGNED list_queue_node
     struct list_queue_node *next;
 };
 
-struct CACHE_ALIGNED list_queue_lock
+typedef struct CACHE_ALIGNED list_queue_lock
 {
     struct list_queue_node *cur;
     struct list_queue_node *tail;
-};
+} spinlock_t;
 
 void spin_init(struct list_queue_lock *l)
 {
@@ -321,81 +326,8 @@ void spin_unlock(struct list_queue_lock *l)
     write_release(&cur->next->flag, 1);
 }
 
+#else
 
-/*
- * Tests
- */
+#error "Set lock impl to something"
 
-#include <thread>
-#include <atomic>
-#include <assert.h>
-
-template <typename lock_type>
-static void test_spinlock()
-{
-    constexpr unsigned long num_iters = 1000000;
-    unsigned long counter = 0;
-    lock_type l;
-
-    spin_init(&l);
-    auto func = [&](void) {
-        for (int i = 0; i < num_iters; ++i) {
-            spin_lock(&l);
-            ++counter;
-            spin_unlock(&l);
-        }
-    };
-
-    std::thread workers[MAX_CPUS] = {
-        std::thread(func),
-        std::thread(func),
-        std::thread(func),
-        std::thread(func),
-    };
-
-    for (auto &t : workers) {
-        t.join();
-    }
-
-    assert(counter == num_iters * MAX_CPUS);
-}
-
-int main(void)
-{
-    {
-        int v = 0;
-        assert(0 == test_and_set(&v));
-        assert(v == 1);
-        assert(1 == test_and_set(&v));
-        assert(v == 1);
-    }
-
-    {
-        int v = 0;
-        assert(0 == compare_and_swap(&v, 0, 1));
-        assert(v == 1);
-        assert(1 == compare_and_swap(&v, 0, 2));
-        assert(v == 1);
-    }
-
-    {
-        int v = 0;
-        assert(0 == fetch_and_inc(&v));
-        assert(v == 1);
-        assert(1 == fetch_and_inc(&v));
-        assert(v == 2);
-    }
-
-    {
-        int v = 0;
-        assert(0 == fetch_and_store(&v, 1));
-        assert(v == 1);
-    }
-
-    test_spinlock<delay_lock>();
-    test_spinlock<ticket_lock>();
-    test_spinlock<array_queue_lock>();
-    test_spinlock<list_queue_lock>();
-
-    return 0;
-}
+#endif
